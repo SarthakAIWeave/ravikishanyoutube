@@ -16,8 +16,8 @@ export const VideoCard: React.FC<VideoCardProps> = ({
   // Direct YouTube watch URL
   const youtubeWatchUrl = `https://www.youtube.com/watch?v=${video.id}`;
   
-  // High quality YouTube thumbnail URL
-  const youtubeThumbnail = `https://i.ytimg.com/vi/${video.id}/mqdefault.jpg`;
+  // Optimized YouTube thumbnail URL for faster loading
+  const youtubeThumbnail = video.thumbnail || `https://i.ytimg.com/vi/${video.id}/mqdefault.jpg`;
   
   // Safe authentic channel avatar
   const creatorAvatar = video.channelAvatar || 
