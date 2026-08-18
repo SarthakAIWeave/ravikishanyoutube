@@ -1,0 +1,6 @@
+{
+  "name": "Ravi Kishan Tube",
+  "description": "YouTube-style video streaming platform exclusively for Ravi Kishan videos, with custom Bhojpuri sidebar channels, randomized 4-column grid layout, and locked special video slot.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
