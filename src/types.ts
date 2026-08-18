@@ -26,6 +26,7 @@ export interface SidebarTabItem {
   description?: string;
   section?: 'main' | 'custom_bhojpuri' | 'subscriptions' | 'explore';
   active?: boolean;
+  youtubeQuery?: string;
 }
 
 export interface SoundItem {

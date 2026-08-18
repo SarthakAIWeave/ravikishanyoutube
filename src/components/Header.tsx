@@ -10,7 +10,8 @@ import {
   Flame, 
   Sparkles,
   Share2,
-  X
+  X,
+  ExternalLink
 } from 'lucide-react';
 
 interface HeaderProps {
@@ -56,15 +57,33 @@ export const Header: React.FC<HeaderProps> = ({
     }, 1800);
   };
 
+  const handleSearchSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    // In-app filter is already updated via onSearchChange
+  };
+
+  const openYouTubeSearch = () => {
+    const q = searchQuery.trim() || 'Ravi Kishan';
+    window.open(`https://www.youtube.com/results?search_query=${encodeURIComponent(q)}`, '_blank', 'noopener,noreferrer');
+  };
+
   return (
     <header className="sticky top-0 z-40 bg-[#0f0f0f] border-b border-[#272727] px-4 py-2 flex items-center justify-between gap-4 h-14">
-      {/* Left Section: Menu & Logo */}
+      {/* Toast popup */}
+      {voiceToast && (
+        <div className="absolute top-16 left-1/2 -translate-x-1/2 bg-red-950/90 border border-red-500/50 text-white px-4 py-2 rounded-full text-xs font-bold shadow-2xl flex items-center gap-2 z-50 animate-bounce">
+          <Sparkles className="w-4 h-4 text-amber-400" />
+          <span>{voiceToast}</span>
+        </div>
+      )}
+
+      {/* Left Section: Menu Toggle & Logo */}
       <div className="flex items-center gap-4 shrink-0">
         <button
-          id="btn-sidebar-toggle"
+          id="btn-toggle-sidebar"
           onClick={onToggleSidebar}
-          className="p-2 rounded-full hover:bg-[#272727] text-white transition-colors focus:outline-none focus:ring-1 focus:ring-red-600"
-          title="Toggle Bhojpuri Sidebar"
+          className="p-2 rounded-full hover:bg-[#272727] text-white transition-colors cursor-pointer"
+          title="Guide"
         >
           <Menu className="w-5 h-5" />
         </button>
@@ -92,7 +111,7 @@ export const Header: React.FC<HeaderProps> = ({
 
       {/* Middle Section: Search Bar & Voice Search */}
       <div className="flex-1 max-w-2xl flex items-center justify-center">
-        <div className="w-full flex items-center">
+        <form onSubmit={handleSearchSubmit} className="w-full flex items-center">
           <div className="flex-1 flex items-center bg-[#121212] border border-[#303030] rounded-l-full px-4 py-1.5 focus-within:border-[#1c62b9] focus-within:bg-[#0f0f0f] transition-all">
             <Search className="w-4 h-4 text-[#888888] mr-2 shrink-0" />
             <input
@@ -105,8 +124,9 @@ export const Header: React.FC<HeaderProps> = ({
             />
             {searchQuery && (
               <button
+                type="button"
                 onClick={() => onSearchChange('')}
-                className="text-[#888] hover:text-white p-1"
+                className="text-[#888] hover:text-white p-1 cursor-pointer"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -114,17 +134,30 @@ export const Header: React.FC<HeaderProps> = ({
           </div>
 
           <button
+            type="submit"
             id="btn-search-submit"
-            className="bg-[#222222] hover:bg-[#272727] border border-l-0 border-[#303030] rounded-r-full px-5 py-2 text-white transition-colors"
+            className="bg-[#222222] hover:bg-[#272727] border border-l-0 border-[#303030] rounded-r-full px-5 py-2 text-white transition-colors cursor-pointer"
             title="Search"
           >
             <Search className="w-4 h-4" />
           </button>
 
+          {/* Direct YouTube Search shortcut */}
           <button
+            type="button"
+            onClick={openYouTubeSearch}
+            className="ml-1.5 px-3 py-2 bg-[#1a1a1a] hover:bg-[#282828] border border-[#333] rounded-full text-[11px] font-bold text-red-400 hover:text-red-300 transition-colors flex items-center gap-1 cursor-pointer shrink-0 hidden sm:flex"
+            title="Search this query on YouTube in new tab"
+          >
+            <span>YouTube</span>
+            <ExternalLink className="w-3 h-3" />
+          </button>
+
+          <button
+            type="button"
             id="btn-voice-search"
             onClick={handleVoiceSearch}
-            className={`ml-2 p-2.5 rounded-full border border-[#303030] transition-all ${
+            className={`ml-2 p-2.5 rounded-full border border-[#303030] transition-all cursor-pointer ${
               isListening
                 ? 'bg-red-600 text-white animate-pulse'
                 : 'bg-[#222222] hover:bg-[#272727] text-white'
@@ -133,7 +166,7 @@ export const Header: React.FC<HeaderProps> = ({
           >
             <Mic className="w-4 h-4" />
           </button>
-        </div>
+        </form>
       </div>
 
       {/* Right Section: Actions, Soundboard, Notifications & Profile */}
@@ -142,7 +175,7 @@ export const Header: React.FC<HeaderProps> = ({
         <button
           id="btn-open-soundboard"
           onClick={onOpenSoundboard}
-          className="flex items-center gap-1.5 bg-gradient-to-r from-amber-600 to-red-600 hover:from-amber-500 hover:to-red-500 text-white text-xs font-bold px-3 py-1.5 rounded-full transition-all shadow-md active:scale-95"
+          className="flex items-center gap-1.5 bg-gradient-to-r from-amber-600 to-red-600 hover:from-amber-500 hover:to-red-500 text-white text-xs font-bold px-3 py-1.5 rounded-full transition-all shadow-md active:scale-95 cursor-pointer"
           title="Ravi Kishan Dialogues Soundboard"
         >
           <Volume2 className="w-3.5 h-3.5" />
@@ -153,7 +186,7 @@ export const Header: React.FC<HeaderProps> = ({
         <button
           id="btn-upload-video"
           onClick={onOpenUpload}
-          className="p-2 rounded-full hover:bg-[#272727] text-white transition-colors"
+          className="p-2 rounded-full hover:bg-[#272727] text-white transition-colors cursor-pointer"
           title="Add Bhojpuri Video"
         >
           <Video className="w-5 h-5" />
@@ -163,33 +196,22 @@ export const Header: React.FC<HeaderProps> = ({
         <button
           id="btn-notifications"
           onClick={onOpenNotifications}
-          className="relative p-2 rounded-full hover:bg-[#272727] text-white transition-colors"
-          title="Bhojpuri Notifications"
+          className="relative p-2 rounded-full hover:bg-[#272727] text-white transition-colors cursor-pointer"
+          title="Notifications"
         >
           <Bell className="w-5 h-5" />
           {unreadNotifications > 0 && (
-            <span className="absolute top-1 right-1 w-4 h-4 bg-red-600 text-white text-[10px] font-bold rounded-full flex items-center justify-center">
-              {unreadNotifications}
-            </span>
+            <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-600 rounded-full animate-pulse" />
           )}
         </button>
 
-        {/* Ravi Kishan VIP Member Avatar */}
-        <div 
-          className="w-8 h-8 rounded-full ring-2 ring-red-500 overflow-hidden cursor-pointer bg-gradient-to-tr from-yellow-500 to-red-600 flex items-center justify-center text-white font-black text-xs shadow"
-          title="Ravi Kishan VIP Gold Member"
-        >
-          RK
+        {/* User Profile Avatar */}
+        <div className="ml-1 cursor-pointer">
+          <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-red-600 via-amber-500 to-red-500 flex items-center justify-center font-black text-xs text-white shadow-md border border-[#444]">
+            RK
+          </div>
         </div>
       </div>
-
-      {/* Voice Toast Banner */}
-      {voiceToast && (
-        <div className="fixed top-16 left-1/2 -translate-x-1/2 bg-red-600 text-white text-xs font-bold px-4 py-2 rounded-full shadow-2xl z-50 flex items-center gap-2 animate-bounce">
-          <Mic className="w-3.5 h-3.5 animate-spin" />
-          <span>{voiceToast}</span>
-        </div>
-      )}
     </header>
   );
 };

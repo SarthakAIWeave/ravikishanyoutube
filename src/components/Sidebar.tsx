@@ -18,9 +18,10 @@ import {
   Hammer,
   Scale,
   Clapperboard,
-  Sparkle
+  Search
 } from 'lucide-react';
 import { SIDEBAR_TABS } from '../data/videos';
+import { SidebarTabItem } from '../types';
 
 interface SidebarProps {
   isOpen: boolean;
@@ -67,8 +68,12 @@ export const Sidebar: React.FC<SidebarProps> = ({
     }
   };
 
-  const handleTabClick = (tabId: string) => {
-    onSelectTab(tabId);
+  const handleTabClick = (e: React.MouseEvent, tab: SidebarTabItem) => {
+    onSelectTab(tab.id);
+    // Open YouTube with the exact search query in a new tab
+    const ytQuery = tab.youtubeQuery || tab.title;
+    const url = `https://www.youtube.com/results?search_query=${encodeURIComponent(ytQuery)}`;
+    window.open(url, '_blank', 'noopener,noreferrer');
   };
 
   if (!isOpen) {
@@ -86,21 +91,30 @@ export const Sidebar: React.FC<SidebarProps> = ({
           <span className="text-[10px] font-medium">Home</span>
         </button>
 
-        {SIDEBAR_TABS.slice(0, 5).map((tab) => (
-          <button
-            key={tab.id}
-            onClick={() => handleTabClick(tab.id)}
-            className={`flex flex-col items-center gap-1 p-2 rounded-xl text-center w-14 transition-colors cursor-pointer group ${
-              selectedTab === tab.id ? 'text-white bg-[#272727]' : 'text-[#aaaaaa] hover:bg-[#202020] hover:text-white'
-            }`}
-            title={tab.title}
-          >
-            <span className={selectedTab === tab.id ? 'text-red-500' : 'text-red-400 group-hover:text-red-300'}>
-              {renderIcon(tab.iconName)}
-            </span>
-            <span className="text-[9px] font-medium leading-tight truncate w-12">{tab.title.split(' ')[0]}</span>
-          </button>
-        ))}
+        {SIDEBAR_TABS.slice(0, 5).map((tab) => {
+          const ytQuery = tab.youtubeQuery || tab.title;
+          const ytSearchUrl = `https://www.youtube.com/results?search_query=${encodeURIComponent(ytQuery)}`;
+          return (
+            <a
+              key={tab.id}
+              href={ytSearchUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              onClick={(e) => {
+                onSelectTab(tab.id);
+              }}
+              className={`flex flex-col items-center gap-1 p-2 rounded-xl text-center w-14 transition-colors cursor-pointer group ${
+                selectedTab === tab.id ? 'text-white bg-[#272727]' : 'text-[#aaaaaa] hover:bg-[#202020] hover:text-white'
+              }`}
+              title={`Search "${tab.title}" on YouTube (opens in new tab)`}
+            >
+              <span className={selectedTab === tab.id ? 'text-red-500' : 'text-red-400 group-hover:text-red-300'}>
+                {renderIcon(tab.iconName)}
+              </span>
+              <span className="text-[9px] font-medium leading-tight truncate w-12">{tab.title.split(' ')[0]}</span>
+            </a>
+          );
+        })}
       </aside>
     );
   }
@@ -130,30 +144,41 @@ export const Sidebar: React.FC<SidebarProps> = ({
           <span className="text-[11px] font-bold uppercase tracking-wider text-[#aaaaaa]">
             Desi Channels & Academies
           </span>
+          <span className="text-[10px] text-red-400 font-medium">YouTube Search ↗</span>
         </div>
 
         <div className="space-y-1">
           {SIDEBAR_TABS.map((tab) => {
             const isCurrent = selectedTab === tab.id;
+            const ytQuery = tab.youtubeQuery || tab.title;
+            const ytSearchUrl = `https://www.youtube.com/results?search_query=${encodeURIComponent(ytQuery)}`;
+
             return (
-              <button
+              <a
                 key={tab.id}
                 id={`tab-${tab.id}`}
-                onClick={() => handleTabClick(tab.id)}
-                className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-sm transition-all cursor-pointer group ${
+                href={ytSearchUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={(e) => {
+                  onSelectTab(tab.id);
+                }}
+                className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-sm transition-all group cursor-pointer ${
                   isCurrent
                     ? 'bg-[#272727] text-white font-bold'
                     : 'text-[#e5e5e5] hover:bg-[#222222]'
                 }`}
-                title={tab.title}
+                title={`Search "${tab.title}" on YouTube`}
               >
-                <div className="flex items-center gap-3.5 truncate">
+                <div className="flex items-center gap-3.5 flex-1 truncate">
                   <span className={isCurrent ? 'text-red-500' : 'text-red-400 group-hover:text-red-300'}>
                     {renderIcon(tab.iconName)}
                   </span>
                   <span className="truncate text-[13px]">{tab.title}</span>
                 </div>
-              </button>
+
+                <ExternalLink className="w-3.5 h-3.5 text-[#888] group-hover:text-red-400 shrink-0 ml-1 transition-colors" />
+              </a>
             );
           })}
         </div>
