@@ -196,16 +196,45 @@ async function scrapeYouTubeForRaviKishan(query: string): Promise<ScrapedYouTube
     if (!response.ok) return [];
 
     const html = await response.text();
-    const match = html.match(/var ytInitialData = ({.+?});<\/script>/s) ||
-                  html.match(/ytInitialData\s*=\s*({.+?});/s);
 
-    if (!match || !match[1]) return [];
+    let jsonStr = '';
+    const searchStr = 'var ytInitialData = ';
+    const idx = html.indexOf(searchStr);
+    if (idx !== -1) {
+      const start = idx + searchStr.length;
+      const end = html.indexOf(';</script>', start);
+      if (end !== -1) {
+        jsonStr = html.substring(start, end);
+      }
+    }
+    if (!jsonStr) {
+      const searchStr2 = 'window["ytInitialData"] = ';
+      const idx2 = html.indexOf(searchStr2);
+      if (idx2 !== -1) {
+        const start2 = idx2 + searchStr2.length;
+        const end2 = html.indexOf(';', start2);
+        if (end2 !== -1) {
+          jsonStr = html.substring(start2, end2);
+        }
+      }
+    }
 
-    const data = JSON.parse(match[1]);
+    if (!jsonStr) return [];
+
+    let data;
+    try {
+      data = JSON.parse(jsonStr);
+    } catch (e) {
+      console.error('Failed to parse YouTube JSON:', e);
+      return [];
+    }
+
     const discovered: ScrapedYouTubeVideo[] = [];
 
-    function findVideos(obj: any) {
-      if (!obj || typeof obj !== 'object') return;
+    const queue = [data];
+    while (queue.length > 0) {
+      const obj = queue.shift();
+      if (!obj || typeof obj !== 'object') continue;
 
       if (obj.videoRenderer) {
         const vr = obj.videoRenderer;
@@ -234,7 +263,7 @@ async function scrapeYouTubeForRaviKishan(query: string): Promise<ScrapedYouTube
               duration,
               views,
               uploadedAt: timeAgo,
-              thumbnail: `https://i.ytimg.com/vi/${videoId}/hqdefault.jpg`,
+              thumbnail: `https://i.ytimg.com/vi/${videoId}/mqdefault.jpg`,
               embedUrl: `https://www.youtube.com/embed/${videoId}?autoplay=1&rel=0`,
               description: desc || `Real YouTube video featuring superstar Ravi Kishan from channel ${channelName}`,
               verified: true,
@@ -244,14 +273,14 @@ async function scrapeYouTubeForRaviKishan(query: string): Promise<ScrapedYouTube
             });
           }
         }
-      }
-
-      for (const k of Object.keys(obj)) {
-        findVideos(obj[k]);
+      } else {
+        for (const k of Object.keys(obj)) {
+          if (obj[k] && typeof obj[k] === 'object') {
+            queue.push(obj[k]);
+          }
+        }
       }
     }
-
-    findVideos(data);
     return discovered;
   } catch (err) {
     console.error('Error scraping YouTube:', err);
@@ -275,9 +304,11 @@ async function refreshScrapedPool() {
 }
 
 async function initScraper() {
-  for (let i = 0; i < 3; i++) {
-    await refreshScrapedPool();
-  }
+  await Promise.all([
+    refreshScrapedPool(),
+    refreshScrapedPool(),
+    refreshScrapedPool()
+  ]);
   setInterval(refreshScrapedPool, 30000);
 }
 

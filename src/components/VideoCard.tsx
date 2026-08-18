@@ -17,7 +17,7 @@ export const VideoCard: React.FC<VideoCardProps> = ({
   const youtubeWatchUrl = `https://www.youtube.com/watch?v=${video.id}`;
   
   // High quality YouTube thumbnail URL
-  const youtubeThumbnail = `https://i.ytimg.com/vi/${video.id}/hqdefault.jpg`;
+  const youtubeThumbnail = `https://i.ytimg.com/vi/${video.id}/mqdefault.jpg`;
   
   // Safe authentic channel avatar
   const creatorAvatar = video.channelAvatar || 
@@ -43,10 +43,11 @@ export const VideoCard: React.FC<VideoCardProps> = ({
           referrerPolicy="no-referrer"
           className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
           loading="lazy"
+          decoding="async"
           onError={(e) => {
             const target = e.target as HTMLImageElement;
-            if (!target.src.includes('mqdefault.jpg')) {
-              target.src = `https://i.ytimg.com/vi/${video.id}/mqdefault.jpg`;
+            if (target.src.includes('mqdefault.jpg')) {
+              target.src = `https://i.ytimg.com/vi/${video.id}/hqdefault.jpg`;
             } else if (!target.src.includes('0.jpg')) {
               target.src = `https://i.ytimg.com/vi/${video.id}/0.jpg`;
             }
